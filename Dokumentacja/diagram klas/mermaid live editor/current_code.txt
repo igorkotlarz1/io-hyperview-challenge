@@ -1,0 +1,80 @@
+classDiagram
+    %% --- RELACJE (Strzałki) ---
+
+    %% Zależność (Dependency) - LoginWindow tworzy Usera i Admina
+    LoginWindow ..> User : creates(user)
+    LoginWindow ..> Admin : create(admin)
+
+    %% Dziedziczenie (Inheritance) - Admin JEST Userem
+    User <|-- Admin : isUser
+
+    %% Kompozycja (Composition) - Czarny romb
+    %% User "posiada" Data (romb przy User)
+    User *-- Data
+    %% ModelManager "posiada" Model (romb przy ModelManager)
+    ModelManager *-- Model
+
+    %% Zależność (Dependency) - User używa Managera, Admin Explorera
+    User ..> ModelManager : Use
+    Admin ..> DataExplorer : Use
+
+    %% Dziedziczenie (Inheritance) - Baseline i RandomForest to Modele
+    Model <|-- Baseline : Extends
+    Model <|-- RandomForest : Extends
+
+
+    %% --- DEFINICJE KLAS ---
+
+    class LoginWindow {
+        -login: string
+        -id: string
+        +verifyAccount()
+        +login()
+    }
+
+    class Data {
+        -gt_path
+        -wl_path
+        +load_data()
+    }
+
+    class User {
+        +id: int??
+        +startModel(data)
+        +downloadResults()
+        +showScore()
+        +loadData()
+    }
+
+    class Admin {
+        -accessLevel: int
+        +analizeData()
+        +createNewAccount()
+    }
+
+    class ModelManager {
+        +chooseModel()
+        +makePrediction(data)
+        +compareWithBaseline()
+    }
+
+    class Model {
+        <<abstract>>
+        +predict()*
+    }
+    %% Gwiazdka przy predict oznacza metodę abstrakcyjną w niektórych notacjach,
+    %% ale dodałem też stereotyp <<abstract>> dla jasności.
+
+    class Baseline {
+        +predict()
+    }
+
+    class RandomForest {
+        +predict()
+    }
+
+    class DataExplorer {
+        +analizeCorrelation()
+        +showPCA()
+        +visualizeSpectrum()
+    }
