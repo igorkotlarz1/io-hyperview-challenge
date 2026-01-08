@@ -28,7 +28,7 @@ class Preprocessor:
 
         return savgol_filter(mean_spectrum, window_length=sg_window, polyorder=sg_poly, deriv=sg_deriv)
 
-    def process_image(self, spectral_arr):
+    def process_image(self, spectral_arr: np.ma.MaskedArray):
         processed_data = spectral_arr.copy()
 
         blurred_data = self._apply_gauss_smoothing(spectral_arr.data)
@@ -41,5 +41,32 @@ class Preprocessor:
         derivative = self._apply_sav_gol_filter(mean_spectrum)
         return derivative
 
-    def process_dataset(self, data_manager: DataManager):
-        pass
+    def process_dataset(self, data_manager: DataManager, gt_df: pd.DataFrame):
+        X_features = []
+        y_labels = []
+        valid_indices = []
+
+        target_cols = list(data_manager.cfg.TARGET_COLS)
+
+        for id, row in gt_df.iterrows():
+            spectral_arr = data_manager.load_image(id)          
+
+            if spectral_arr is None:
+                continue
+
+            processed_arr = self.process_image(spectral_arr)
+
+            if processed_arr is not None:
+                X_features.append(processed_arr)
+                y_labels.append(row[target_cols].values)
+                valid_indices.append(id)
+
+        X = np.array(X_features)
+        y = np.array(y_labels)
+
+        return X, y, valid_indices
+
+
+
+
+    

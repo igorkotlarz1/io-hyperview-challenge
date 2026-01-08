@@ -30,7 +30,7 @@ class DataManager:
         return pd.read_csv(wl_path)
     
     def load_image(self, image_id:int) -> np.ma.MaskedArray:
-        img_path = os.join(self.cfg.TRAIN_DATA_PATH,f'{image_id}.npz')
+        img_path = os.path.join(self.cfg.TRAIN_DATA_PATH,f'{image_id}.npz')
 
         if not os.path.exists(img_path):
             print(f'Could not find file: {img_path}')
@@ -45,11 +45,10 @@ class DataManager:
             return None
  
 
-    def save_submission(self, predictions: pd.DataFrame, filename: str = "submission.csv"):
-        
+    def save_submission(self, predictions: pd.DataFrame, filename: str = "submission.csv"):       
         if not filename.endswith('.csv'):
             filename += '.csv'
-        path = os.join(self.cfg.SUBMISSION_DIR, filename)
+        path = os.path.join(self.cfg.SUBMISSION_DIR, filename)
 
         predictions.to_csv(path)
         print(f'Succesfully saved submission file to: {path}')
