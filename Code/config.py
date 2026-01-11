@@ -8,7 +8,7 @@ class Config:
     GT_PATH: str = '../../train_data/train_gt.csv'
     WL_PATH: str = '../../train_data/wavelengths.csv'
     SUBMISSION_DIR: str = '../Submissions'
-    TARGET_COLS: list =('P', 'K', 'Mg', 'pH')
+    TARGET_COLS: tuple =('P', 'K', 'Mg', 'pH')
 
     SIGMA_PARAM = (0, 2, 2) 
     SG_WINDOW = 11
@@ -17,5 +17,10 @@ class Config:
 
     CV_FOLDS = 3
     CV_ITER = 10
+    CV_SCORING_MSE = 'neg_mean_squared_error'
+    CV_SCORING_MAE = 'neg_mean_absolute_error'
+
+    MODEL_TYPE: str = 'xgb'
+    
 
 

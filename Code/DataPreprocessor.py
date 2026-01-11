@@ -46,7 +46,7 @@ class Preprocessor:
         y_labels = []
         valid_indices = []
 
-        target_cols = list(data_manager.cfg.TARGET_COLS)
+        target_cols = list(self.cfg.TARGET_COLS)
 
         for id, row in gt_df.iterrows():
             spectral_arr = data_manager.load_image(id)          
