@@ -4,6 +4,9 @@ import typing
 import os
 from config import Config
 
+
+
+
 class DataManager:
 
     def __init__(self, config: Config):
@@ -52,4 +55,31 @@ class DataManager:
 
         predictions.to_csv(path)
         print(f'Succesfully saved submission file to: {path}')
+
+
+      ################## NOWE ##############
+    def load_image_from_path(self, file_path: str) -> np.ma.MaskedArray:
+
+
+        if not file_path.lower().endswith('.npz'):
+            print(f"Error: file {file_path} is not .npz")
+            return None
+
+        if not os.path.exists(file_path):
+            print(f"Error: file does not exist: {file_path}")
+            return None
+
+
+
+        try:
+            with np.load(file_path) as npz:
+                spectral_arr = np.ma.MaskedArray(**npz)
+                return spectral_arr
+        except Exception as e:
+            print(f'Error while loading: {file_path}')
+            return None
+
+
+
+
 

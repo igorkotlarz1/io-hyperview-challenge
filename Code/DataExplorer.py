@@ -37,7 +37,7 @@ class Explorer:
     def compare_masked_vs_not_masked( image_3d: np.ma.MaskedArray, band: int = 0):
 
         bands, height, width = image_3d.shape
-        if Explorer.validate_band(band, bands):
+        if not Explorer.validate_band(band, bands):
 
                 print(f"Wrong band, image has only {bands} bands")
 
