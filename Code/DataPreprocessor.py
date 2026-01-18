@@ -34,7 +34,13 @@ class Preprocessor:
 
         return savgol_filter(mean_spectrum, window_length=sg_window, polyorder=sg_poly, deriv=sg_deriv)
 
-    def process_image(self, spectral_arr: np.ma.MaskedArray):
+    def _calculate_higher_derivatives(self, sg_first_deriv: np.ndarray):
+        second_deriv = np.gradient(sg_first_deriv, axis=0)
+        third_deriv = np.gradient(second_deriv, axis=0)
+
+        return second_deriv, third_deriv
+
+    def process_image(self, spectral_arr: np.ma.MaskedArray, include_higher_derivs:bool =False):
         processed_data = spectral_arr.copy()
 
         blurred_data = self._apply_gauss_smoothing(spectral_arr.data)
@@ -44,8 +50,15 @@ class Preprocessor:
         if mean_spectrum is None:
             return None
         
-        derivative = self._apply_sav_gol_filter(mean_spectrum)
-        return derivative
+        first_deriv = self._apply_sav_gol_filter(mean_spectrum)
+
+        if not include_higher_derivs:
+            return first_deriv
+        
+        second_deriv, third_deriv = self._calculate_higher_derivatives(first_deriv)
+
+        features = np.concatenate([first_deriv, second_deriv, third_deriv])
+        return features      
 
     def process_dataset(self, data_manager: DataManager, gt_df: pd.DataFrame):
         X_features = []
@@ -72,7 +85,7 @@ class Preprocessor:
 
         return X, y, valid_indices
     
-    def process_data(self, data_manager: DataManager, image_ids: np.ndarray, file_path: str):
+    def process_data(self, data_manager: DataManager, image_ids: np.ndarray, file_path: str, include_higher_derivs:bool =False):
         X_features = []
         valid_indices = []
 
@@ -85,7 +98,7 @@ class Preprocessor:
             if spectral_arr is None:
                 continue
 
-            processed_arr = self.process_image(spectral_arr)
+            processed_arr = self.process_image(spectral_arr, include_higher_derivs)
 
             if processed_arr is not None:
                 X_features.append(processed_arr)

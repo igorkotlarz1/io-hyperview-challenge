@@ -18,8 +18,10 @@ class Config:
     SG_POLY = 2
     SG_DERIV = 1
 
+    RFE_N_FEATURES = 40
+
     CV_FOLDS = 5
-    CV_ITER = 100
+    CV_ITER = 80
     CV_SCORING_MSE = 'neg_mean_squared_error'
     CV_SCORING_MAE = 'neg_mean_absolute_error'
 

@@ -107,12 +107,18 @@ class ModelManager:
         return baseline_reg.predict(X_test)
     
     def save_models(self, filename:str = 'models.pkl'):
+        if not filename.endswith('.pkl'):
+            filename += '.pkl'
+            
         path = os.path.join(self.cfg.SUBMISSION_DIR,'Models',filename)
 
         joblib.dump(self.models, path)
         print(f'Successfully saved models to: {path}!')
 
     def load_models(self, filename:str = 'models.pkl'):
+        if not filename.endswith('.pkl'):
+            filename += '.pkl'
+
         path = os.path.join(self.cfg.SUBMISSION_DIR,'Models',filename)
         if not os.path.exists(path):
             raise FileNotFoundError(f'Failed to find model file: {path}!')
