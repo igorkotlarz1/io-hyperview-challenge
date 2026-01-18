@@ -69,9 +69,10 @@ class ModelManager:
             #subsetting y_train, y_test to obtain single soil param each iteration
             y_target = y_train[:,i]
             base_model,  _ = self._get_model_conf()
+            
             #base_model = RandomForestRegressor(random_state=SEED, n_jobs=-1)
-            search = RandomizedSearchCV(estimator=base_model, param_distributions=params, n_iter = 20, random_state=SEED, 
-                                        cv=5, scoring=self.cfg.CV_SCORING_MAE, n_jobs=-1, verbose=3)            #self.param_grid
+            search = RandomizedSearchCV(estimator=base_model, param_distributions=params, n_iter = self.cfg.CV_ITER, random_state=SEED, 
+                                        cv=self.cfg.CV_FOLDS, scoring=self.cfg.CV_SCORING_MAE, n_jobs=-1, verbose=3)            #self.param_grid
             search.fit(X_train, y_target)
 
             best_model = search.best_estimator_

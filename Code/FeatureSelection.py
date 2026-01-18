@@ -9,6 +9,8 @@ class FeatureSelector:
         self.cfg = config
         self.n_features = n_features
         self.step = step
+        self.support_ = None
+        self.selector_ = None
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         seed = self.cfg.RANDOM_SEED
@@ -26,9 +28,17 @@ class FeatureSelector:
             raise RuntimeError('You need to fit the selector first!')
         return X[:, self.support_]
 
+    def fit_transform(self, X: np.ndarray, y: np.ndarray):
+        self.fit(X, y)
+        return self.transform(X)
+
     def get_indices(self):
         if self.support_ is None:
             raise RuntimeError('You need to fit the selector first!')
         selected_indices = np.where(self.selector_.get_support())[0]
-        return selected_indices.sort()
-        
+        return np.sort(selected_indices)
+    
+    def get_feature_ranking(self):
+        if self.selector_ is None:
+            raise RuntimeError('You need to fit the selector first!')
+        return self.selector_.ranking_

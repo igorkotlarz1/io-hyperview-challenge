@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
-
+from typing import Tuple, List
 from config import Config
 from DataManager import DataManager
 
@@ -11,8 +11,10 @@ class Preprocessor:
         self.cfg = config
         #self.dm = DataManager(config)
 
-    def _apply_gauss_smoothing(self, spectral_arr: np.ndarray): 
-        return gaussian_filter(spectral_arr, sigma=self.cfg.SIGMA_PARAM)
+    def _apply_gauss_smoothing(self, spectral_arr: np.ndarray, sigma: Tuple[int] = None):
+        if sigma is None:
+            sigma = self.cfg.SIGMA_PARAM 
+        return gaussian_filter(spectral_arr, sigma=sigma)
 
     def _calculate_mean_spectrum(self, spectral_arr: np.ma.MaskedArray):
         mean_spectrum = spectral_arr.mean(axis=(1,2))
@@ -21,10 +23,14 @@ class Preprocessor:
             return None
         return mean_spectrum.data
 
-    def _apply_sav_gol_filter(self, mean_spectrum: np.ndarray):
-        sg_window = self.cfg.SG_WINDOW
-        sg_poly = self.cfg.SG_POLY
-        sg_deriv = self.cfg.SG_DERIV
+    def _apply_sav_gol_filter(self, mean_spectrum: np.ndarray, sg_window: int = None, sg_poly: int = None, sg_deriv: int = None):
+
+        if sg_window is None:
+            sg_window = self.cfg.SG_WINDOW
+        if sg_poly is None:
+            sg_poly = self.cfg.SG_POLY
+        if sg_deriv is None:
+            sg_deriv = self.cfg.SG_DERIV
 
         return savgol_filter(mean_spectrum, window_length=sg_window, polyorder=sg_poly, deriv=sg_deriv)
 
@@ -65,6 +71,32 @@ class Preprocessor:
         y = np.array(y_labels)
 
         return X, y, valid_indices
+    
+    def process_data(self, data_manager: DataManager, image_ids: np.ndarray, file_path: str):
+        X_features = []
+        valid_indices = []
+
+        image_count = len(image_ids)
+        target_cols = list(self.cfg.TARGET_COLS)
+
+        for id in image_ids:
+            spectral_arr = data_manager.load_image(id, file_path)          
+
+            if spectral_arr is None:
+                continue
+
+            processed_arr = self.process_image(spectral_arr)
+
+            if processed_arr is not None:
+                X_features.append(processed_arr)
+                valid_indices.append(id)
+            
+            if id >0 and id % 100 == 0:
+                print(f'processed {id}/{image_count} images...')
+
+        X = np.array(X_features)
+
+        return X, valid_indices
 
 
 

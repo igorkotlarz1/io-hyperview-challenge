@@ -5,8 +5,11 @@ class Config:
     RANDOM_SEED: int = 123
 
     TRAIN_DATA_PATH: str = '../../train_data/train_data'
+    TEST_DATA_PATH: str = '../../test_data'
+
     GT_PATH: str = '../../train_data/train_gt.csv'
     WL_PATH: str = '../../train_data/wavelengths.csv'
+
     SUBMISSION_DIR: str = '../Submissions'
     TARGET_COLS: tuple =('P', 'K', 'Mg', 'pH')
 
@@ -15,8 +18,8 @@ class Config:
     SG_POLY = 2
     SG_DERIV = 1
 
-    CV_FOLDS = 3
-    CV_ITER = 10
+    CV_FOLDS = 5
+    CV_ITER = 100
     CV_SCORING_MSE = 'neg_mean_squared_error'
     CV_SCORING_MAE = 'neg_mean_absolute_error'
 
