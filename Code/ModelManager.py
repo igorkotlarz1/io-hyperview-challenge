@@ -7,6 +7,8 @@ from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 
 from config import Config
 
+import optuna
+
 try:
     from xgboost import XGBRegressor
 except ImportError:
@@ -28,6 +30,14 @@ class ModelManager:
         }
     
     def _get_model_conf(self):
+        """Returns the model instance and parameter grid based on the configuration
+
+        Raises:
+            ValueError: If XGB is requested but not installed
+
+        Returns:
+            Tuple[BaseEstimator, Dict]: Instance of the model and its parameter grid for RandomizedSearchCV
+        """
         SEED = self.cfg.RANDOM_SEED
 
         if self.model_type == "rf":
@@ -60,6 +70,14 @@ class ModelManager:
             raise ValueError('Unknown model type')
         
     def tune_fit(self, X_train: np.ndarray, y_train: np.ndarray, verbose=False):
+        """Tunes hyperparameters and fits models for each target variable separately.
+        Uses RandomizedSearchCV for hyperparameter tuning.
+
+        Args:
+            X_train (np.ndarray): Training features
+            y_train (np.ndarray): Training targets
+            verbose (bool, optional): If true prints the best parameters for each model. Defaults to False.
+        """
         target_cols = list(self.cfg.TARGET_COLS)
         SEED = self.cfg.RANDOM_SEED
 
@@ -83,6 +101,17 @@ class ModelManager:
 
 
     def predict(self, X_test: np.ndarray) -> pd.DataFrame:
+        """Generates predictions using trained models/
+
+        Args:
+            X_test (np.ndarray): Test features.
+
+        Raises:
+            RuntimeError: If model hasn't been trained or loaded yet
+
+        Returns:
+            pd.DataFrame: DataFrame with predictions for each target parameter
+        """
         target_cols = list(self.cfg.TARGET_COLS)
         SEED = self.cfg.RANDOM_SEED
 
@@ -101,12 +130,27 @@ class ModelManager:
     
     @staticmethod
     def get_baseline_predictions(X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray):
+        """Calculates baselinbe predictions for model evaluation
+
+        Args:
+            X_train (np.ndarray): Training features 
+            y_train (np.ndarray): Training targets
+            X_test (np.ndarray): Test features
+
+        Returns:
+            np.ndarray: Baseline predictions 
+        """
         baseline_reg = BaselineRegressor()
         baseline_reg.fit(X_train, y_train)
 
         return baseline_reg.predict(X_test)
     
     def save_models(self, filename:str = 'models.pkl'):
+        """Serializes and saves the dictionary of trained models to pkl file
+
+        Args:
+            filename (str, optional): Output filename. Defaults to 'models.pkl'.
+        """
         if not filename.endswith('.pkl'):
             filename += '.pkl'
             
@@ -116,6 +160,14 @@ class ModelManager:
         print(f'Successfully saved models to: {path}!')
 
     def load_models(self, filename:str = 'models.pkl'):
+        """Loads trained models from pkl file.
+
+        Args:
+            filename (str, optional): Input filename. Defaults to 'models.pkl'.
+
+        Raises:
+            FileNotFoundError: If the model file doesn't exist.
+        """
         if not filename.endswith('.pkl'):
             filename += '.pkl'
 
