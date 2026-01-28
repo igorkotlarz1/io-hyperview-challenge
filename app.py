@@ -85,7 +85,7 @@ def create_pdf(dataframe):
         
     return pdf.output(dest='S').encode('latin-1')
 
-def process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=False):
+def process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=True):
     results_list = []
     progress_bar = st.progress(0)
     
@@ -95,7 +95,7 @@ def process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=False):
             try:
                 img = dm.load_image_from_path(temp_path)
                 if img is not None:
-                    features = pp.process_image(img, include_higher_derivs=include_higher_derivs)
+                    features = pp.process_image(img, include_higher_derivs=True)
                     if features is not None:
                         features_reshaped = features.reshape(1, -1)
                         pred_df = mm.predict(features_reshaped)
@@ -137,7 +137,7 @@ def main():
                 else:
                     with st.spinner("Processing images..."):
                         # Assuming False for best_rf_model unless specified otherwise
-                        results_df = process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=False)
+                        results_df = process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=True)
                     
                     if not results_df.empty:
                         st.success("Analysis Complete!")
@@ -253,7 +253,7 @@ def main():
                 else:
                     try:
                         test_ids = dm.get_data_indices(cfg.TEST_DATA_PATH)
-                        X_test, valid_ids = pp.process_dataset(dm, test_ids, cfg.TEST_DATA_PATH, include_higher_derivs=False)
+                        X_test, valid_ids = pp.process_dataset(dm, test_ids, cfg.TEST_DATA_PATH, include_higher_derivs=True)
                         preds_df = mm.predict(X_test)
                         dm.save_submission(preds_df.values, filename="submission_app.csv")
                         with open("submission_app.csv", "rb") as f:

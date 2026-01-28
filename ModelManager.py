@@ -16,61 +16,49 @@ class ModelManager:
         self.models = {}
         self.model_type = model_type
         self.selector = None  
-        self.param_grid = {
-            'n_estimators': [200, 300, 400],
-            'max_depth': [None, 10, 20]
-        }
+        self.param_grid = {} 
     
     def _get_model_conf(self):
-        # Helper method for model configuration (not used in inference)
         pass
         
     def tune_fit(self, X_train, y_train, verbose=False):
-        # Training logic (not used in inference)
         pass
 
     def predict(self, X_test: np.ndarray) -> pd.DataFrame:
-        """Main prediction method with Dictionary Selector support."""
+        """Prediction method using the global feature selector."""
+        # print(f"DEBUG: Input shape before selection: {X_test.shape}")
+        
         target_cols = list(self.cfg.TARGET_COLS)
 
         if not self.models:
-            raise RuntimeError('You need to fit or load models first!')
+            raise RuntimeError('You need to load models first!')
         
         predictions = {}
 
         for target_param in target_cols:
             if target_param in self.models:
                 model = self.models[target_param]
-                
-                # --- PREPARE DATA FOR SPECIFIC TARGET ---
                 X_input = X_test.copy() 
 
-                # 1. Check if we have a dictionary of selectors (per target)
-                current_selector = None
-                
-                if isinstance(self.selector, dict):
-                    # Get selector for P, K, Mg...
-                    current_selector = self.selector.get(target_param)
-                else:
-                    # Or use global selector
-                    current_selector = self.selector
-
-                # 2. If selector exists, apply transformation
-                if current_selector is not None:
+                # --- APPLY FEATURE SELECTION ---
+                if self.selector is not None:
                     try:
-                        # Case A: Wrapper or RFE (has transform method)
-                        if hasattr(current_selector, 'transform'):
-                            X_input = current_selector.transform(X_input)
-                        # Case B: Raw object with support_ mask
-                        elif hasattr(current_selector, 'support_'):
-                            X_input = X_input[:, current_selector.support_]
-                        # Case C: Nested Wrapper
-                        elif hasattr(current_selector, 'selector_') and hasattr(current_selector.selector_, 'transform'):
-                             X_input = current_selector.selector_.transform(X_input)
+                        # Common selector methods (RFE, Boruta, etc.)
+                        if hasattr(self.selector, 'transform'):
+                            X_input = self.selector.transform(X_input)
+                        elif hasattr(self.selector, 'support_'):
+                            X_input = X_input[:, self.selector.support_]
+                        elif hasattr(self.selector, 'selector_') and hasattr(self.selector.selector_, 'transform'):
+                             # Nested wrapper case
+                             X_input = self.selector.selector_.transform(X_input)
+                        
+                        # print(f"DEBUG: Shape after selection for {target_param}: {X_input.shape}")
+                        
                     except Exception as e:
-                        print(f"Warning: Selector failed for {target_param}: {e}")
+                        print(f"Error applying selector for {target_param}: {e}")
+                # -------------------------------
 
-                # 3. Predict on (potentially) reduced data
+                # Predict
                 y_pred = model.predict(X_input)
                 predictions[target_param] = y_pred
 
@@ -81,7 +69,6 @@ class ModelManager:
             filename += '.pkl'
 
         path = filename
-        # Robust path searching logic
         if not os.path.exists(path): path = os.path.join(self.cfg.SUBMISSION_DIR, 'Models', filename)
         if not os.path.exists(path): path = filename 
         if not os.path.exists(path): path = os.path.join('Models', filename)
@@ -89,17 +76,28 @@ class ModelManager:
         if not os.path.exists(path):
             raise FileNotFoundError(f'Model file not found: {filename}')
         
+        print(f"Loading models from: {path}")
         self.models = joblib.load(path)
-        print(f"Loaded models from: {path}")
 
-        # Try loading selector
+        # --- SMART SELECTOR LOADING ---
         selector_path = path.replace('.pkl', '_selector.pkl')
+        
         if os.path.exists(selector_path):
             try:
-                self.selector = joblib.load(selector_path)
-                print(f"Loaded selector: {selector_path}")
+                loaded_obj = joblib.load(selector_path)
+                
+                # CHECK: Is this the dictionary with metadata?
+                if isinstance(loaded_obj, dict) and 'selector' in loaded_obj:
+                    print("Unpacking 'selector' object from dictionary metadata.")
+                    self.selector = loaded_obj['selector']
+                else:
+                    # It's either a direct object or a per-target dict (less likely now)
+                    self.selector = loaded_obj
+                
+                print(f"Selector loaded successfully. Type: {type(self.selector)}")
             except Exception as e:
                 print(f"Selector load error: {e}")
                 self.selector = None
         else:
+            print("Selector file not found.")
             self.selector = None
