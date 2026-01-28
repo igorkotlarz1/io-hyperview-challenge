@@ -1,6 +1,8 @@
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.feature_selection import RFE, VarianceThreshold
 import numpy as np
+import os
+import joblib
 
 from config import Config 
 
@@ -78,3 +80,41 @@ class FeatureSelector:
         if self.selector_ is None:
             raise RuntimeError('You need to fit the selector first!')
         return self.selector_.ranking_
+
+    def save(self, filename: str = 'selector.pkl'):
+        if self.selector_ is None:
+            raise RuntimeError('You need to fit the selector first!')
+        
+        if not filename.endswith('.pkl'):
+            filename += '.pkl'
+
+        path = os.path.join(self.cfg.SUBMISSION_DIR,'Selectors',filename)
+        
+        selector_data = {
+            'selector': self.selector_,
+            'support': self.support_,
+            'n_features': self.n_features,
+            'step': self.step        
+        }
+
+        joblib.dump(selector_data, path)
+        print(f'Successfully saved selector to: {path}!')
+        
+    def load(self, filename: str = 'selector.pkl'):
+        if not filename.endswith('.pkl'):
+            filename += '.pkl'
+
+        path = os.path.join(self.cfg.SUBMISSION_DIR,'Selectors',filename)
+
+        if not os.path.exists(path):
+            raise FileNotFoundError(f'Failed to find the selector file: {path}!')
+
+        selector_data = joblib.load(path)
+
+        self.selector_ = selector_data.get('selector')
+        self.support_ = selector_data.get('support')
+        self.n_features = selector_data.get('n_features')
+        self.step = selector_data.get('step')
+
+
+
