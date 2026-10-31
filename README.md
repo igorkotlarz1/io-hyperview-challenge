@@ -128,4 +128,4 @@ tests/               synthetic-data tests
 
 ## Team
 
-University team project at the Silesian University of Technology: [@igorkotlarz1](https://github.com/igorkotlarz1), [@KamiLMusiol](https://github.com/KamiLMusiol), [@KarolPethe](https://github.com/KarolPethe), [@hascilopiotr](https://github.com/hascilopiotr).
+University team project at the Silesian University of Technology: [@igorkotlarz1](https://github.com/igorkotlarz1), [@KamiLMusiol](https://github.com/KamiLMusiol), [@KarolPethe](https://github.com/KarolPethe), [@hascilopiotr](https://github.com/hascilopiotr), Yevheniia Muravska.
