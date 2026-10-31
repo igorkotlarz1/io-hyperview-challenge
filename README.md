@@ -1,11 +1,17 @@
-# HYPERVIEW Challenge: soil parameters from hyperspectral images
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/header-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./docs/assets/header-light.svg">
+  <img alt="HYPERVIEW: soil P, K, Mg and pH from 150-band hyperspectral images" src="./docs/assets/header-dark.svg" width="100%">
+</picture>
 
 Estimating **phosphorus (P₂O₅), potassium (K), magnesium (Mg) and pH** of agricultural soil from airborne hyperspectral patches. The data comes from the [HYPERVIEW / "Seeing Beyond the Visible" challenge](https://platform-challenges.philab.esa.int/seeing-beyond-the-visible-permanent/) (ESA Φ-lab, KP Labs, QZ Solutions).
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
-![XGBoost](https://img.shields.io/badge/XGBoost-1f6feb?style=flat-square)
-![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?style=flat-square&logo=scipy&logoColor=white)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white" alt="scikit-learn">
+  <img src="https://img.shields.io/badge/XGBoost-1f6feb?style=flat-square" alt="XGBoost">
+  <img src="https://img.shields.io/badge/SciPy-8CAAE6?style=flat-square&logo=scipy&logoColor=white" alt="SciPy">
+</p>
 
 ## The task
 
@@ -13,6 +19,12 @@ Estimating **phosphorus (P₂O₅), potassium (K), magnesium (Mg) and pH** of ag
 - **Score:** the mean over the four targets of `MSE(model) / MSE(baseline)`, where the baseline always predicts the training mean. **1.0 is the baseline and lower is better.**
 
 ## Method
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/pipeline-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./docs/assets/pipeline-light.svg">
+  <img alt="Pipeline: patch, mask-aware smoothing, features, per-target selection, model" src="./docs/assets/pipeline-dark.svg" width="100%">
+</picture>
 
 ```
 patch (150 × H × W, masked)
