@@ -94,12 +94,27 @@ Useful variants:
 
 ```bash
 python -m hyperview all --model xgb                 # XGBoost instead of Random Forest
+python -m hyperview all --model knn                 # k-nearest neighbours on standardized features
 python -m hyperview cv  --selector rfe              # RFE selection (much slower)
 python -m hyperview cv  --features d1 d2 d3         # ablation: derivatives only (close to v1)
 python -m hyperview cv  --n-features 100 --cv-repeats 5
 ```
 
 Everything is seeded (`--seed`, default 123), and all outputs go to `outputs/`. `tune` is the slow step because every candidate refits the feature selector in every fold. Use `--tune-iter` to trade search depth for time.
+
+### App
+
+**AgroSpectral Analyzer** is a Streamlit front end for the trained models. It has two modes:
+- **Farmer:** upload `.npz` patches and get P, K, Mg and pH, with CSV and PDF export.
+- **Scientist:** spectrum preview, the features selected for each target, and batch submission.
+
+```bash
+pip install -r requirements-app.txt
+python -m hyperview submit              # trains and saves outputs/models/soil_model_rf.joblib
+streamlit run app/streamlit_app.py
+```
+
+A saved model remembers the feature settings it was trained with, so models with different feature groups can be loaded side by side.
 
 ### Tests
 
@@ -118,10 +133,11 @@ hyperview/
 ├── data.py          loading patches and labels, writing submissions
 ├── features.py      masked smoothing and feature extraction, with caching
 ├── selection.py     Extra-Trees importance and RFE selectors
-├── models.py        per-target pipelines, hyperparameter search, mean baseline
+├── models.py        per-target pipelines (RF / XGBoost / kNN), hyperparameter search, mean baseline
 ├── evaluation.py    HYPERVIEW score and repeated K-fold CV
 ├── plots.py         quick-look plots for a single patch
 └── __main__.py      command-line interface
+app/                 AgroSpectral Analyzer (Streamlit)
 notebooks/eda.ipynb  exploratory analysis: masks, spectra, band correlation, PCA, target correlations
 tests/               synthetic-data tests
 ```

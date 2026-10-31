@@ -28,7 +28,7 @@ class Config:
     rfe_step: float = 0.1           # fraction of features removed per RFE iteration
 
     # Models
-    model_type: str = "rf"          # "rf" or "xgb"
+    model_type: str = "rf"          # "rf", "xgb" or "knn"
     scoring: str = "neg_mean_squared_error"  # HYPERVIEW score is MSE-based
     tune_iter: int = 30
     tune_folds: int = 5

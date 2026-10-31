@@ -24,8 +24,8 @@ def load_wavelengths(cfg: Config) -> pd.DataFrame:
     return pd.read_csv(path, index_col=0)
 
 
-def load_image(path: Path) -> np.ma.MaskedArray:
-    """One hyperspectral patch: masked array of shape (bands, height, width).
+def load_image(path) -> np.ma.MaskedArray:
+    """One hyperspectral patch (path or file-like): masked array (bands, height, width).
 
     The mask is True outside the agricultural field.
     """
