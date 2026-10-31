@@ -1,0 +1,15 @@
+# Dataset and generated files
+data/
+outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
