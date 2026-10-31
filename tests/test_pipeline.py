@@ -92,3 +92,20 @@ def test_end_to_end_cli(tmp_path):
     assert cv["score"].mean() < 0.5                  # the synthetic targets are learnable
     assert (out_dir / "best_params_rf_importance.json").exists()
     assert (out_dir / "models" / "soil_model_rf.joblib").exists()
+
+
+def test_knn_model_and_saved_feature_settings(tmp_path):
+    from hyperview.features import build_feature_matrix
+    from hyperview.models import SoilModel
+
+    data_dir, out_dir = tmp_path / "data", tmp_path / "outputs"
+    write_dataset(data_dir, n_train=30, n_test=5)
+    main(["submit", "--data-dir", str(data_dir), "--output-dir", str(out_dir), "--model", "knn",
+          "--features", "d1", "size", "--n-features", "10", "--n-jobs", "1"])
+
+    # loading with a default config restores the feature groups the model was trained on
+    model = SoilModel.load(Config(data_dir=data_dir, output_dir=out_dir), out_dir / "models" / "soil_model_knn.joblib")
+    assert model.cfg.feature_groups == ("d1", "size") and model.cfg.model_type == "knn"
+    X_test, _ = build_feature_matrix(model.cfg, "test")
+    assert model.predict(X_test).shape == (5, 4)
+    assert all(len(names) == 10 for names in model.selected_features(feature_names(model.cfg)).values())
