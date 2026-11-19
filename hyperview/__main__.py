@@ -6,7 +6,7 @@
     python -m hyperview submit              # fit on all training data, write the submission
     python -m hyperview all                 # all of the above
 
-Common options: --model rf|xgb, --selector importance|rfe, --n-features N,
+Common options: --model rf|xgb|knn, --selector importance|rfe, --n-features N,
 --features mean d1 d2 d3 std size, --data-dir PATH, --output-dir PATH.
 """
 from __future__ import annotations
@@ -71,7 +71,7 @@ def main(argv=None) -> None:
     parser.add_argument("command", choices=COMMANDS)
     parser.add_argument("--data-dir", type=Path, default=Config.data_dir)
     parser.add_argument("--output-dir", type=Path, default=Config.output_dir)
-    parser.add_argument("--model", choices=["rf", "xgb"], default=Config.model_type)
+    parser.add_argument("--model", choices=["rf", "xgb", "knn"], default=Config.model_type)
     parser.add_argument("--selector", choices=["importance", "rfe"], default=Config.selector)
     parser.add_argument("--n-features", type=int, default=Config.n_features)
     parser.add_argument("--features", nargs="+", choices=FEATURE_GROUPS, default=list(FEATURE_GROUPS),

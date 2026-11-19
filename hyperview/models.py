@@ -3,13 +3,16 @@ from __future__ import annotations
 
 import json
 import logging
+from dataclasses import replace
 from pathlib import Path
 
 import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold, RandomizedSearchCV
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from hyperview.config import Config
 from hyperview.selection import make_selector
@@ -34,6 +37,11 @@ PARAM_SPACES = {
         "model__reg_alpha": [0, 0.1, 1],
         "model__reg_lambda": [1, 5, 10],
     },
+    "knn": {
+        "model__knn__n_neighbors": [3, 5, 7, 9, 11, 15, 20, 30],
+        "model__knn__weights": ["uniform", "distance"],
+        "model__knn__p": [1, 2],
+    },
 }
 
 
@@ -43,7 +51,10 @@ def make_regressor(cfg: Config, n_jobs: int = 1):
     if cfg.model_type == "xgb":
         from xgboost import XGBRegressor
         return XGBRegressor(random_state=cfg.random_seed, n_jobs=n_jobs, tree_method="hist")
-    raise ValueError(f"Unknown model type '{cfg.model_type}', use 'rf' or 'xgb'")
+    if cfg.model_type == "knn":
+        # distance-based, so features are standardized first (originally a pH-only model by @KamiLMusiol)
+        return Pipeline([("scale", StandardScaler()), ("knn", KNeighborsRegressor(n_jobs=n_jobs))])
+    raise ValueError(f"Unknown model type '{cfg.model_type}', use 'rf', 'xgb' or 'knn'")
 
 
 def make_pipeline(cfg: Config, params: dict | None = None, n_jobs: int = 1) -> Pipeline:
@@ -84,16 +95,26 @@ class SoilModel:
             raise RuntimeError("Fit or load the model first")
         return np.column_stack([self.pipelines[t].predict(X) for t in self.cfg.targets])
 
+    # settings a loaded model needs to rebuild exactly the same features
+    SETTINGS = ("gauss_sigma_xy", "sg_window", "sg_poly", "feature_groups", "model_type", "selector", "n_features")
+
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump({"pipelines": self.pipelines, "params": self.params}, path, compress=3)
+        settings = {name: getattr(self.cfg, name) for name in self.SETTINGS}
+        joblib.dump({"pipelines": self.pipelines, "params": self.params, "settings": settings}, path, compress=3)
 
     @classmethod
     def load(cls, cfg: Config, path: Path) -> "SoilModel":
+        """Load a saved model; its feature settings override the ones in ``cfg``."""
         state = joblib.load(path)
-        model = cls(cfg, state["params"])
+        model = cls(replace(cfg, **state.get("settings", {})), state["params"])
         model.pipelines = state["pipelines"]
         return model
+
+    def selected_features(self, names: list[str]) -> dict[str, list[str]]:
+        """Names of the features each target's selector kept."""
+        return {t: [names[i] for i in p.named_steps["select"].get_support(indices=True)]
+                for t, p in self.pipelines.items()}
 
 
 def tune_hyperparameters(cfg: Config, X: np.ndarray, Y: np.ndarray) -> dict[str, dict]:
